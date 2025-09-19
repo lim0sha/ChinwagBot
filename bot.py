@@ -3,9 +3,16 @@ import os
 import asyncio
 from flask import Flask, request
 from telegram import Update, Bot
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    MessageHandler,
+    filters,
+    ContextTypes,
+)
 from mistralai import Mistral
 from dotenv import load_dotenv
+
 
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -17,7 +24,7 @@ with open("prompt.txt", "r", encoding="utf-8") as f:
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
+    level=logging.INFO,
 )
 
 client = Mistral(api_key=MISTRAL_API_KEY)
@@ -25,34 +32,44 @@ bot = Bot(token=TELEGRAM_TOKEN)
 application = Application.builder().token(TELEGRAM_TOKEN).build()
 app = Flask(__name__)
 
+
 def ask_llm(user_message: str) -> str:
     try:
         response = client.chat.complete(
             model="mistral-medium",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_message}
+                {"role": "user", "content": user_message},
             ],
             max_tokens=300,
-            temperature=0.7
+            temperature=0.7,
         )
         return response.choices[0].message.content
     except Exception as e:
         return f"Ошибка: {str(e)}"
 
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Hi! Ready to chinwag a little bit!")
+    await update.message.reply_text(
+        "Hi! Ready to chinwag a little bit!"
+    )
+
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     bot_username = context.bot.username
+
     if f"@{bot_username}" in user_message:
         clean_message = user_message.replace(f"@{bot_username}", "").strip()
         answer = ask_llm(clean_message)
         await update.message.reply_text(answer)
 
+
 application.add_handler(CommandHandler("start", start))
-application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+application.add_handler(
+    MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
+)
+
 
 @app.route(f"/{TELEGRAM_TOKEN}", methods=["POST"])
 def webhook():
@@ -61,9 +78,11 @@ def webhook():
     asyncio.run(application.update_queue.put(update))
     return "ok"
 
+
 @app.route("/", methods=["GET"])
 def index():
     return "Bot is running!"
+
 
 if __name__ == "__main__":
     if MODE == "LOCAL":
