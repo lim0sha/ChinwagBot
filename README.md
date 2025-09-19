@@ -1,4 +1,4 @@
-# Chinwag
+# Chinwag 😝
 ## A Telegram ChatBot with Mistral AI + Telegram API
 
 A simple Telegram chatbot for group conversations: it responds whenever someone mentions its `@username` in a chat.  
@@ -20,8 +20,8 @@ The bot is powered by:
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/your-bot-repo.git
-cd your-bot-repo
+git clone https://github.com/lim0sha/ChinwagBot.git
+cd ChinwagBot
 ```
 
 ### 2. Create a virtual environment and install dependencies
@@ -75,7 +75,7 @@ python bot.py
 ```bash
 ChinwagBot/
 │
-├── bot.py           # Bot source code
+├── bot.py            # Bot source code
 ├── prompt.txt        # Bot startup instructions
 ├── .env.example      # Environment variable template
 ├── requirements.txt  # Python dependencies
