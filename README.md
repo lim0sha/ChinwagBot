@@ -13,7 +13,7 @@ The bot is powered by:
 - Powered by Mistral AI for modern, high-quality text generation.
 - Easy to set up locally or deploy to a server.
 - Uses `.env` for API keys and `prompt.txt` for custom startup instructions.
-
+- Supports both **Polling** (local testing) and **Webhook** (production, Cloud Run).
 ---
 
 ## 📋 Setup Instructions
@@ -46,7 +46,7 @@ pip install -r requirements.txt
 
 ### 2. Get your Mistral AI API key:
 
-- Sign up at [Mistral AI](https://docs.mistral.ai/)
+- Sign up at [**Mistral AI**](https://docs.mistral.ai/)
 - Create a new API key.
 - Add it to your `.env` file.
 
@@ -63,23 +63,87 @@ This file contains instructions for the bot at startup.
 
 Example: _You are a helpful Telegram bot. Respond in a friendly and concise way._
 
-### 3. Run the bot
+### 3. Run the bot (Polling mode — local testing)
 ```bash
+# .env: BOT_MODE=LOCAL
 python bot.py
 ```
 
-### 4. Test it
+### 4. Run the bot (Webhook mode — production)
+When deploying to Google Cloud Run or another hosting, set:
+```bash
+# .env: BOT_MODE=WEBHOOK
+```
+The Flask server will handle Telegram updates via webhook.
+
+### 5. Test it
 - Add the bot to a group chat or send it a direct message.
 - Mention it with `@username` and it will reply.
 
+## 🐳 Local Deployment with Docker
+### 1. Build Docker image:
+```bash
+docker build -t chinwagbot .
+```
+
+### 2. Run locally with Polling mode:
+```bash
+docker run --env-file .env -p 8080:8080 chinwagbot
+```
+
+## ☁️ Deploying to Google Cloud Run
+### 1. Install Google Cloud SDK
+- [Google Cloud SDK Docs](https://cloud.google.com/sdk/docs/install)
+
+### 2.Authenticate and set project
+```bash
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+```
+
+### 3. Build Docker image
+```bash
+gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/chinwagbot
+```
+
+### 4. Deploy to Cloud Run
+```bash
+gcloud run deploy chinwagbot \
+  --image gcr.io/YOUR_PROJECT_ID/chinwagbot \
+  --platform managed \
+  --allow-unauthenticated \
+  --region YOUR_REGION
+```
+
+### 5. Set environment variables in Cloud Run UI:
+```bash
+TELEGRAM_TOKEN=your_token
+MISTRAL_API_KEY=your_key
+BOT_MODE=WEBHOOK
+```
+
+### 6. Set Telegram webhook
+```bash
+curl -F "url=https://<your-cloud-run-service>.run.app/<TELEGRAM_TOKEN>" \
+"https://api.telegram.org/bot<TELEGRAM_TOKEN>/setWebhook"
+```
+Now Telegram will send updates to your deployed bot.
+
+## 📂 Project Structure
 ```bash
 ChinwagBot/
 │
 ├── bot.py            # Bot source code
 ├── prompt.txt        # Bot startup instructions
+├── Dockerfile        # Docker image configuration
+├── .dockerignore     # Files to ignore in Docker build
 ├── .env.example      # Environment variable template
 ├── requirements.txt  # Python dependencies
-└── README.md         # This file
+├── docs/
+│   └── LICENSE.md    # License file
+└── .github/
+    └── workflows/
+        └── python-ci.yml  # GitHub Actions workflow
 ```
 ---
 ## License
